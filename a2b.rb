@@ -9,6 +9,6 @@ get '/' do
 end
 
 post '/form' do
-	@trip = TripPlanner.new(params[:pointA], params[:pointB]).routes
+	@trip = TripPlanner.new #(params[:pointA], params[:pointB])
 	erb :trips
 end
