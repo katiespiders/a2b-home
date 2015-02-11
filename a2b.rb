@@ -9,6 +9,10 @@ get '/' do
 end
 
 post '/form' do
-	@trip = TripPlanner.new(params[:pointA], params[:pointB]).routes
+	puts "*"*80, "NEW TRIP FROM #{params[:pointA]} to #{params[:pointB]}"
+	@trip = TripPlanner.new(params[:pointA], params[:pointB])
+	@car = Car.new(@trip.car)
+	@walk = Walk.new(@trip.walk)
+	@transit = Transit.new(@trip.transit)
 	erb :trips
 end

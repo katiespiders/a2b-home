@@ -4,7 +4,11 @@
   </head>
 
   <body>
-    <% puts "@"*80, @trip %>
-    <%= @trip %>
+    <h1>car</h1>
+    <div> The nearest car is around <%= @car.address %>, a <%= @car.walk_time %> minute walk away. Point B is a <%= @car.drive_time %> minute drive from there.</div>
+    <h1>walk</h1>
+    <div> Or you could walk <%= @walk.distance %> meters (<%= @walk.walk_time %> minutes). </div>
+    <h1>transit</h1>
+    <div> The bus will take <%= @transit.directions[0][:duration] %> minutes. </div>
   </body>
 </html>
