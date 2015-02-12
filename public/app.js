@@ -6,6 +6,8 @@ $(document).ready(function() {
     var pointA = makeQueryString( $("#pointA").val() );
     var pointB = makeQueryString( $("#pointB").val() );
 
+    var geocoder = new google.maps.Geocoder();
+
     var host = 'http://localhost:3000/';
     var query = '?origin=' + pointA + '&destination=' + pointB;
 
