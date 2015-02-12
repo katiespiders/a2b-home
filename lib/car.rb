@@ -2,7 +2,6 @@ class Car
   attr_accessor :address, :itinerary, :walk_directions, :drive_directions, :walk_time, :drive_time
 
   def initialize(car)
-    puts car
     @address = address_str(car['address'])
     @itinerary = car['itinerary']
     @walk_directions = @itinerary[0][0]

@@ -1,0 +1,26 @@
+- require './lib/trip_planner'
+
+%html
+	%head
+	%title seattle a2b
+	%script{type: 'text/javascript', src: 'http://code.jquery.com/jquery-2.1.0.min.js'}
+	%script{type: 'text/javascript', src: 'app.js'}
+
+	
+	%body
+		%form
+			%span
+				%label{for: 'pointA'} Point A:
+				%input#pointA{type: 'text', name: 'pointA', placeholder: 'point A', value: '352 N 80th St'}
+			%span
+				%label{for: 'pointB'} Point B:
+				%input#pointB{type: 'text', name: 'pointB', placeholder: 'point B', value: '525 21st Ave'}
+			%span
+				%button#submit plan trip
+
+		#car
+			%h3 car trip here
+		#walk
+			%h3 walk trip here
+		#transit
+			%h3 transit trip here

@@ -2,7 +2,6 @@ class Transit
   attr_accessor :directions
 
   def initialize(transit)
-    puts "$"*80, transit
     @directions = parse(transit['directions'])
   end
 
