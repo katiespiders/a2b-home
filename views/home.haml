@@ -3,11 +3,13 @@
 %html
 	%head
 	%title seattle a2b
-	%script{type: 'text/javascript', src: 'http://code.jquery.com/jquery-2.1.0.min.js'}
+	%link{type: 'text/css', rel: 'stylesheet', href: 'bootstrap.min.css'}
+	%script{type: 'text/javascript', src: 'jquery-2.1.3.min.js'}
 	%script{type: 'text/javascript', src: 'app.js'}
 
-	
+
 	%body
+	.container
 		%form
 			%span
 				%label{for: 'pointA'} Point A:
@@ -18,9 +20,13 @@
 			%span
 				%button#submit plan trip
 
-		#car
-			%h3 car trip here
-		#walk
-			%h3 walk trip here
-		#transit
-			%h3 transit trip here
+		.row
+			#car.col-xs-4
+				%h3 car trip here
+				#car-info
+			#walk.col-xs-4
+				%h3 walk trip here
+				#walk-info
+			#transit.col-xs-4
+				%h3 transit trip here
+				#transit-info

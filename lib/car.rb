@@ -9,11 +9,4 @@ class Car
     @drive_directions = @itinerary[1][0]
     @drive_time = @drive_directions['duration'] / 60
   end
-
-  private
-    def address_str(address)
-      street = /^(.*),/.match(address)[1]
-      split = street.index /(\s|\d)*$/
-      street[split+1..-1] + ' ' + street[0...split]
-    end
 end
