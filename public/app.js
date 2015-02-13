@@ -1,4 +1,5 @@
 $(document).ready(function() {
+  var map;
   loadMap();
 
   $("#submit").click(function(event) {
@@ -14,7 +15,7 @@ $(document).ready(function() {
     geocoder.geocode(
       { 'address': addressA },
       function(results, status) {
-        geoA = results[0].geometry.location.toUrlValue();
+        geoA = results[0].geometry.location;
         callAPI(geoA, geoB);
       }
     );
@@ -22,7 +23,7 @@ $(document).ready(function() {
     geocoder.geocode(
       { 'address': addressB },
       function(results, status) {
-        geoB = results[0].geometry.location.toUrlValue();
+        geoB = results[0].geometry.location;
         callAPI(geoA, geoB);
       }
     );
@@ -32,8 +33,10 @@ $(document).ready(function() {
 function callAPI(geoA, geoB) {
   if(!geoA || !geoB) { return false; }
   else {
+    redrawMap(geoA, geoB);
+
     var host = 'http://localhost:3000/';
-    var query = '?origin=' + geoA + '&destination=' + geoB;
+    var query = '?origin=' + geoA.toUrlValue() + '&destination=' + geoB.toUrlValue();
     var modes = ['car', 'walk', 'transit'];
     for(var i=0; i<3; i++) {
       mode = modes[i];
@@ -67,7 +70,23 @@ function getRoute(url, mode) {
     },
     error: function(http) { $(routeBox).html(http.responseText); }
   });
+}
+
+function redrawMap(geoA, geoB) {
+  var a2b = [geoA, geoB];
+  for(var i=0; i<2; i++) {
+    new google.maps.Marker({
+      position: a2b[i],
+      map: map
+    });
   }
+
+  var latGeoC = (geoA.lat() + geoB.lat()) / 2;
+  var lngGeoC = (geoA.lng() + geoB.lng()) / 2;
+
+  var geoC = new google.maps.LatLng(latGeoC, lngGeoC);
+  map.setCenter(geoC);
+}
 
 function carInfo(result) {
   var address = result['address'];
@@ -111,6 +130,6 @@ function loadMap() {
     center: { lat: 47.6097, lng: -122.3331 },
     zoom: 11
   };
-  var map = new google.maps.Map(document.getElementById('map-canvas'),
+  map = new google.maps.Map(document.getElementById('map-canvas'),
       mapOptions);
 }
