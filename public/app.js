@@ -1,46 +1,73 @@
 $(document).ready(function() {
+  loadMap();
+
   $("#submit").click(function(event) {
 
     event.preventDefault();
 
-    var pointA = makeQueryString( $("#pointA").val() );
-    var pointB = makeQueryString( $("#pointB").val() );
+    var addressA = $("#pointA").val() + ' Seattle';
+    var addressB = $("#pointB").val() + ' Seattle';
 
     var geocoder = new google.maps.Geocoder();
+    var geoA, geoB;
 
-    var host = 'http://localhost:3000/';
-    var query = '?origin=' + pointA + '&destination=' + pointB;
+    geocoder.geocode(
+      { 'address': addressA },
+      function(results, status) {
+        geoA = results[0].geometry.location.toUrlValue();
+        callAPI(geoA, geoB);
+      }
+    );
 
-    $.ajax( {
-      url: host + 'car' + query,
-      crossDomain: true,
-      success: function(result) {
-        console.log(result);
-        if(result) {  $("#car-info").html(carInfo(result)); }
-        else { $("#car-info").html('No nearby cars :('); }
-      },
-      error: function(http) { $("#car-info").html(http.responseText); }
-    });
-
-    $.ajax( {
-      url: host + 'walk' + query,
-      crossDomain: true,
-      success: function(result) { console.log(result); $("#walk-info").html(walkInfo(result)); },
-      error: function(http) { $("#walk-info").html(http.responseText); }
-    });
-
-    $.ajax( {
-      url: host + 'transit' + query,
-      crossDomain: true,
-      success: function(result) { console.log(result); $("#transit-info").html(transitInfo(result)); },
-      error: function(http) { $("#transit-info").html(http.responseText); }
-    });
+    geocoder.geocode(
+      { 'address': addressB },
+      function(results, status) {
+        geoB = results[0].geometry.location.toUrlValue();
+        callAPI(geoA, geoB);
+      }
+    );
   });
 });
 
-function makeQueryString(query) {
-  return query.replace(/\s/g, '+') + '+Seattle';
-};
+function callAPI(geoA, geoB) {
+  if(!geoA || !geoB) { return false; }
+  else {
+    var host = 'http://localhost:3000/';
+    var query = '?origin=' + geoA + '&destination=' + geoB;
+    var modes = ['car', 'walk', 'transit'];
+    for(var i=0; i<3; i++) {
+      mode = modes[i];
+      url = host + mode + query;
+      getRoute(url, mode)}
+  }
+}
+
+function getRoute(url, mode) {
+  var routeBox = '#' + mode + '-info';
+
+  $.ajax( {
+    url: url,
+    crossDomain: true,
+    success: function(result) {
+      var info;
+
+      switch(mode) {
+        case 'car':
+          info = carInfo(result);
+          break;
+        case 'walk':
+          info = walkInfo(result);
+          break;
+        case 'transit':
+          info = transitInfo(result);
+          break;
+      }
+
+      $(routeBox).html(info);
+    },
+    error: function(http) { $(routeBox).html(http.responseText); }
+  });
+  }
 
 function carInfo(result) {
   var address = result['address'];
@@ -77,4 +104,13 @@ function transitInfo(result) {
 
 function capitalize(str) {
   return str[0].toUpperCase(); + str.slice(1).toLowerCase();
+}
+
+function loadMap() {
+  var mapOptions = {
+    center: { lat: 47.6097, lng: -122.3331 },
+    zoom: 11
+  };
+  var map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
 }
