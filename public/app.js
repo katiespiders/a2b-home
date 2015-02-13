@@ -33,6 +33,7 @@ $(document).ready(function() {
 function callAPI(geoA, geoB) {
   if(!geoA || !geoB) { return false; }
   else {
+    placePins(geoA, geoB);
     redrawMap(geoA, geoB);
 
     var host = 'http://localhost:3000/';
@@ -72,7 +73,7 @@ function getRoute(url, mode) {
   });
 }
 
-function redrawMap(geoA, geoB) {
+function placePins(geoA, geoB) {
   var a2b = [geoA, geoB];
   for(var i=0; i<2; i++) {
     new google.maps.Marker({
@@ -80,12 +81,24 @@ function redrawMap(geoA, geoB) {
       map: map
     });
   }
+}
 
-  var latGeoC = (geoA.lat() + geoB.lat()) / 2;
-  var lngGeoC = (geoA.lng() + geoB.lng()) / 2;
+function redrawMap(geoA, geoB) {
+  var latArray = [geoA.lng(), geoB.lng()];
+  var lngArray = [geoA.lng(), geoB.lng()];
 
-  var geoC = new google.maps.LatLng(latGeoC, lngGeoC);
-  map.setCenter(geoC);
+  var north = getMaxOfArray(latArray);
+  var south = getMinOfArray(latArray);
+  var east = getMaxOfArray(lngArray);
+  var west = getMinOfArray(lngArray);
+
+  var paddingNS = (north - south) / 4;
+  var paddingEW = (east - west) / 4;
+
+  var boundNE = new google.maps.LatLng(north + paddingNS, east + paddingEW);
+  var boundSW = new google.maps.LatLng(south + paddingNS, west + paddingEW);
+  var bounds = new google.maps.LatLngBounds(boundNE, boundSW);
+  map.fitBounds(bounds);
 }
 
 function carInfo(result) {
