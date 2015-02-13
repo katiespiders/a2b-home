@@ -42,11 +42,11 @@ function callAPI(geoA, geoB) {
     for(var i=0; i<3; i++) {
       mode = modes[i];
       url = host + mode + query;
-      getRoute(url, mode)}
+      getRoute(url, mode, geoA, geoB)}
   }
 }
 
-function getRoute(url, mode) {
+function getRoute(url, mode, geoA, geoB) {
   var routeBox = '#' + mode + '-info';
 
   $.ajax( {
@@ -57,7 +57,7 @@ function getRoute(url, mode) {
 
       switch(mode) {
         case 'car':
-          info = carInfo(result);
+          info = carInfo(result, geoA, geoB);
           break;
         case 'walk':
           info = walkInfo(result);
@@ -84,39 +84,58 @@ function placePins(geoA, geoB) {
 }
 
 function redrawMap(geoA, geoB) {
-  var latArray = [geoA.lng(), geoB.lng()];
-  var lngArray = [geoA.lng(), geoB.lng()];
+  var latA = geoA.lat();
+  var latB = geoB.lat();
+  var lngA = geoA.lng();
+  var lngB = geoB.lng();
 
-  var north = getMaxOfArray(latArray);
-  var south = getMinOfArray(latArray);
-  var east = getMaxOfArray(lngArray);
-  var west = getMinOfArray(lngArray);
+  var north = Math.max(latA, latB);
+  var south = Math.min(latA, latB);
+  var east = Math.max(lngA, lngB);
+  var west = Math.min(lngA, lngB);
 
-  var paddingNS = (north - south) / 4;
-  var paddingEW = (east - west) / 4;
+  var paddingNS = (north - south) / 48;
+  var paddingEW = (east - west) / 48;
 
   var boundNE = new google.maps.LatLng(north + paddingNS, east + paddingEW);
   var boundSW = new google.maps.LatLng(south + paddingNS, west + paddingEW);
-  var bounds = new google.maps.LatLngBounds(boundNE, boundSW);
+  var bounds = new google.maps.LatLngBounds(boundSW, boundNE);
   map.fitBounds(bounds);
 }
 
-function carInfo(result) {
-  var address = result['address'];
+function carInfo(result, geoA, geoB) {
+  coords = result['coordinates'];
+  carPosition = new google.maps.LatLng(coords['lat'], coords['long']);
 
-  var walk = result['itinerary']['walk'][0];
-  var distance = walk['distance'];
-  var duration = walk['duration']/60;
+  new google.maps.Marker({
+    position: carPosition,
+    map: map
+  });
 
-  var walkInfo = 'There\'s a car about ' + distance +  ' meters away at ' + address + ', about a ' + duration + ' minute walk. ';
+  var planner = new google.maps.DirectionsService();
+  var renderer = new google.maps.DirectionsRenderer();
+  renderer.setMap(map);
 
-  var drive = result['itinerary']['drive'][0];
-  var distance = drive['distance'];
-  var duration = drive['duration']/60;
+  planner.route(
+    { origin: geoA,
+      destination: carPosition,
+      travelMode: google.maps.TravelMode.WALKING,
+      provideRouteAlternatives: false
+    },
+    function(result, status) {
+      renderer.setDirections(result);
+      renderer.setPanel(document.getElementById('car-info'));
+  });
 
-  var driveInfo = 'From there, it\'s a ' + duration + ' minute drive to your destination.';
-
-  return walkInfo + driveInfo;
+  planner.route(
+    { origin: carPosition,
+      destination: geoB,
+      travelMode: google.maps.TravelMode.DRIVING,
+      provideRouteAlternatives: true
+    },
+    function(result, status) {
+      renderer.setDirections(result);
+    });
 };
 
 function walkInfo(result) {
