@@ -1,5 +1,31 @@
+body {
+  margin: 5px;
+}
+
+#a2b {
+  margin: 5px;
+}
+
 #map-canvas {
   position: absolute;
   height: 75%;
   width: 90%;
+}
+
+.trips {
+  height: 40vh;
+  width: 90vw;
+  border-style: solid;
+  overflow: auto;
+}
+
+#car-info, #walk-info, #transit-info {
+  border-style: solid;
+  overflow: auto;
+}
+
+#verbiage {
+  height: 50px;
+  width: 90vw;
+  border-style: solid;
 }

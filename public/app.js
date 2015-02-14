@@ -1,6 +1,5 @@
 $(document).ready(function() {
-  var map;
-  loadMap();
+  var map = loadMap();
 
   $("#submit").click(function(event) {
 
@@ -38,11 +37,14 @@ function callAPI(geoA, geoB) {
 
     var host = 'http://localhost:3000/';
     var query = '?origin=' + geoA.toUrlValue() + '&destination=' + geoB.toUrlValue();
-    var modes = ['car', 'walk', 'transit'];
-    for(var i=0; i<3; i++) {
-      mode = modes[i];
-      url = host + mode + query;
-      getRoute(url, mode, geoA, geoB)}
+
+    var car = host + 'car' + query;
+    getRoute(car, 'car', geoA, geoB);
+
+    // var transit = host + 'transit' + query;
+    // getRoute(transit, 'transit', geoA, geoB);
+
+    getWalk(geoA, geoB);
   }
 }
 
@@ -59,9 +61,6 @@ function getRoute(url, mode, geoA, geoB) {
         case 'car':
           info = carInfo(result, geoA, geoB);
           break;
-        case 'walk':
-          info = walkInfo(result);
-          break;
         case 'transit':
           info = transitInfo(result);
           break;
@@ -74,13 +73,17 @@ function getRoute(url, mode, geoA, geoB) {
 }
 
 function placePins(geoA, geoB) {
-  var a2b = [geoA, geoB];
-  for(var i=0; i<2; i++) {
-    new google.maps.Marker({
-      position: a2b[i],
-      map: map
-    });
-  }
+  new google.maps.Marker({
+    position: geoA,
+    map: map,
+    icon: 'http://maps.gstatic.com/mapfiles/markers2/marker_greenA.png'
+  });
+
+  new google.maps.Marker({
+    position: geoB,
+    map: map,
+    icon: 'http://maps.gstatic.com/mapfiles/markers2/markerB.png'
+  });
 }
 
 function redrawMap(geoA, geoB) {
@@ -104,42 +107,78 @@ function redrawMap(geoA, geoB) {
 }
 
 function carInfo(result, geoA, geoB) {
-  coords = result['coordinates'];
-  carPosition = new google.maps.LatLng(coords['lat'], coords['long']);
-
+  var coords = result['coordinates'];
+  var address = result['address'];
+  var carPosition = new google.maps.LatLng(coords['lat'], coords['long']);
   new google.maps.Marker({
     position: carPosition,
-    map: map
+    map: map,
+    icon: 'http://maps.gstatic.com/mapfiles/kml/pal4/icon23.png'
   });
 
   var planner = new google.maps.DirectionsService();
-  var renderer = new google.maps.DirectionsRenderer();
-  renderer.setMap(map);
+
+  var $routeBox = $('#car-info');
+  var $verbiageBox = $('#verbiage');
 
   planner.route(
     { origin: geoA,
       destination: carPosition,
-      travelMode: google.maps.TravelMode.WALKING,
-      provideRouteAlternatives: false
+      travelMode: google.maps.TravelMode.WALKING
     },
-    function(result, status) {
-      renderer.setDirections(result);
-      renderer.setPanel(document.getElementById('car-info'));
-  });
+    function(results, status) {
+      var firstRoute = results['routes'][0];
+      var directions = firstRoute['legs'][0];
+      var duration = directions['duration']['text'];
+      var distance = directions['distance']['text'];
+
+      $routeBox.append('The nearest car is around ' + address + ', a ' + distance + ' (about ' +  duration + ') walk away.');
+      $verbiageBox.append(firstRoute['warnings'][0]);
+      $verbiageBox.append(' ' + firstRoute['copyrights']);
+
+      renderDirections(directions, $routeBox);
+      drawRoute(directions['steps'], map);
+    });
 
   planner.route(
     { origin: carPosition,
       destination: geoB,
-      travelMode: google.maps.TravelMode.DRIVING,
-      provideRouteAlternatives: true
+      travelMode: google.maps.TravelMode.DRIVING
     },
-    function(result, status) {
-      renderer.setDirections(result);
+    function(results, status) {
+      var directions = results['routes'][0]['legs'][0];
+      var duration = directions['duration']['text'];
+      var distance = directions['distance']['text'];
+
+      $routeBox.append('After you pick up the car, it\'s about a ' + duration + ' minute drive:');
+
+      renderDirections(directions, $routeBox);
+      drawRoute(directions['steps'], map);
     });
 };
 
-function walkInfo(result) {
-  return 'It\'s a ' + result['duration'] / 60 + ' minute walk.'
+function getWalk(geoA, geoB) {
+  var planner = new google.maps.DirectionsService();
+
+  var $routeBox = $('#walk-info');
+
+  planner.route(
+    { origin: geoA,
+      destination: geoB,
+      travelMode: google.maps.TravelMode.WALKING
+    },
+    function(results, status) {
+      var firstRoute = results['routes'][0];
+      var directions = firstRoute['legs'][0];
+      var duration = directions['duration']['text'];
+      var distance = directions['distance']['text'];
+
+      $routeBox.append('It\'s a ' + distance + ' (about ' + duration + ') walk.');
+
+      renderDirections(directions, $routeBox);
+      drawRoute(directions['steps'], map);
+    }
+  );
 };
 
 function transitInfo(result) {
@@ -153,8 +192,26 @@ function transitInfo(result) {
   return instructions;
 }
 
-function capitalize(str) {
-  return str[0].toUpperCase(); + str.slice(1).toLowerCase();
+function renderDirections(route, routeBox) {
+  var steps = route['steps'];
+
+  routeBox.append('<ol>');
+  for(var i=0; i<steps.length; i++) {
+    routeBox.append('<li>' + steps[i]['instructions'] + '</li>');
+  }
+  routeBox.append('</ol>');
+}
+
+function drawRoute(stepArray, map) {
+  for(var i=0; i<stepArray.length; i++) {
+   drawPolyline(stepArray[i]['polyline']['points'], map);
+  }
+}
+
+function drawPolyline(encodedPoints, map) {
+  var decodedPoints = google.maps.geometry.encoding.decodePath(encodedPoints);
+  var line = new google.maps.Polyline( { path: decodedPoints } );
+  line.setMap(map);
 }
 
 function loadMap() {
@@ -164,4 +221,5 @@ function loadMap() {
   };
   map = new google.maps.Map(document.getElementById('map-canvas'),
       mapOptions);
+  return map;
 }

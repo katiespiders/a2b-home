@@ -13,7 +13,7 @@
 
 	%body
 	.container
-		%form
+		%form#a2b
 			%span
 				%label{for: 'pointA'} Point A:
 				%input#pointA{type: 'text', name: 'pointA', placeholder: 'point A', value: '352 N 80th St'}
@@ -23,16 +23,19 @@
 			%span
 				%button#submit plan trip
 
-		.row
-			#map-canvas.col-xs-12
+		.directions
+			.row.trips
+				#car.col-xs-4
+					%h3 car
+					#car-info
+				#walk.col-xs-4
+					%h3 walk
+					#walk-info
+				#transit.col-xs-4
+					%h3 transit
+					#transit-info
+			.row
+				#verbiage.col-xs-12
 
 		.row
-			#car.col-xs-4
-				%h3 car trip here
-				#car-info
-			#walk.col-xs-4
-				%h3 walk trip here
-				#walk-info
-			#transit.col-xs-4
-				%h3 transit trip here
-				#transit-info
+			#map-canvas.col-xs-12
