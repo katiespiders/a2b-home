@@ -41,8 +41,8 @@ function callAPI(geoA, geoB) {
     var car = host + 'car' + query;
     getRoute(car, 'car', geoA, geoB);
 
-    // var transit = host + 'transit' + query;
-    // getRoute(transit, 'transit', geoA, geoB);
+    var transit = host + 'transit' + query;
+    getRoute(transit, 'transit', geoA, geoB);
 
     getWalk(geoA, geoB);
   }
@@ -109,11 +109,11 @@ function redrawMap(geoA, geoB) {
 function carInfo(result, geoA, geoB) {
   var coords = result['coordinates'];
   var address = result['address'];
-  var carPosition = new google.maps.LatLng(coords['lat'], coords['long']);
+  var carPosition = new google.maps.LatLng(coords[0], coords[1]);
   new google.maps.Marker({
     position: carPosition,
     map: map,
-    icon: 'http://maps.gstatic.com/mapfiles/kml/pal4/icon23.png'
+    icon: 'http://maps.gstatic.com/mapfiles/kml/pal4/icon54.png'
   });
 
   var planner = new google.maps.DirectionsService();
@@ -146,6 +146,7 @@ function carInfo(result, geoA, geoB) {
       travelMode: google.maps.TravelMode.DRIVING
     },
     function(results, status) {
+      console.log(results);
       var directions = results['routes'][0]['legs'][0];
       var duration = directions['duration']['text'];
       var distance = directions['distance']['text'];
@@ -189,7 +190,7 @@ function transitInfo(result) {
   for(var i=0; i<legs.length; i++)
     { instructions += (legs[i]['instructions'] + ' '); }
 
-  return instructions;
+  $('#transit-info').append(instructions);
 }
 
 function renderDirections(route, routeBox) {
