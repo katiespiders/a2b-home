@@ -194,10 +194,11 @@ function getTransit(result) {
             distance: directions['distance']['value'],
             duration: directions['duration']['value'],
             steps: directions['steps'],
-            mode: 'WALK'
+            mode: 'WALK',
+            next_mode: leg['next_mode']
           };
 
-          if(i === legs.length-1) { transitHTML(legs); }
+          if(i === legs.length-1) { transitSummary(legs); }
         }
       );
     }
@@ -206,7 +207,7 @@ function getTransit(result) {
 
 function transitSummary(legs) {
 
-  var firstTransit, lastTransit, firstWalk;
+  var firstTransit, lastTransit, firstWalk, lastWalk;
   var walkTime = 0;
   var transitTime = 0;
 
@@ -218,13 +219,10 @@ function transitSummary(legs) {
     }
     else {
       firstWalk = firstWalk || leg;
+      lastWalk = leg;
       walkTime += leg['duration'];
     }
   });
-
-  var totalTime = walkTime + transitTime;
-  var duration =
-  console.log(firstTransit, lastTransit, transitTime, firstWalk, walkTime);
 
 }
 
