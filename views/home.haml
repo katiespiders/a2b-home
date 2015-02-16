@@ -5,6 +5,7 @@
 %html
 	%head
 	%title seattle a2b
+	-# %meta{name: 'viewport', content: 'width=device-width, initial-scale=1'}
 	%link{type: 'text/css', rel: 'stylesheet', href: 'bootstrap.min.css'}
 	%link{type: 'text/css', rel: 'stylesheet', href: 'app.css'}
 	%script{type: 'text/javascript', src: "https://maps.googleapis.com/maps/api/js?key=#{ENV['GOOGLE_KEY']}"}
@@ -23,19 +24,26 @@
 			%span
 				%button#submit plan trip
 
-		.directions
-			.row.trips
-				#car.col-xs-4
-					%h3 car
-					#car-info
-				#walk.col-xs-4
-					%h3 walk
-					#walk-info
-				#transit.col-xs-4
-					%h3 transit
-					#transit-info
-			.row
-				#verbiage.col-xs-12
+		.row.trips
+			#car.col-sm-4
+				%h3 car
+				#car-info
+					.summary
+					.directions.walk
+					.directions.drive
+			#walk.col-sm-4
+				%h3 walk
+				#walk-info
+					.summary
+					.toggle-btn
+					.directions
+			#transit.col-sm-4
+				%h3 transit
+				#transit-info
+					.summary
+					.directions
 
 		.row
-			#map-canvas.col-xs-12
+			#map-canvas.col-sm-12
+		.row
+			#verbiage.col-sm-12

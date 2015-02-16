@@ -1,12 +1,12 @@
 $(document).ready(function() {
   var map = loadMap();
 
-  $("#submit").click(function(event) {
+  $('#submit').click(function(event) {
 
     event.preventDefault();
 
-    var addressA = $("#pointA").val() + ' Seattle';
-    var addressB = $("#pointB").val() + ' Seattle';
+    var addressA = $('#pointA').val() + ' Seattle';
+    var addressB = $('#pointB').val() + ' Seattle';
 
     var geocoder = new google.maps.Geocoder();
     var geoA, geoB;
@@ -27,6 +27,7 @@ $(document).ready(function() {
       }
     );
   });
+
 });
 
 function callAPI(geoA, geoB) {
@@ -38,11 +39,11 @@ function callAPI(geoA, geoB) {
     var host = 'http://localhost:3000/';
     var query = '?origin=' + geoA.toUrlValue() + '&destination=' + geoB.toUrlValue();
 
-    var car = host + 'car' + query;
-    getRoute(car, 'car', geoA, geoB);
+    // var car = host + 'car' + query;
+    // getRoute(car, 'car', geoA, geoB);
 
-    var transit = host + 'transit' + query;
-    getRoute(transit, 'transit', geoA, geoB);
+    // var transit = host + 'transit' + query;
+    // getRoute(transit, 'transit', geoA, geoB);
 
     getWalk(geoA, geoB);
   }
@@ -55,22 +56,140 @@ function getRoute(url, mode, geoA, geoB) {
     url: url,
     crossDomain: true,
     success: function(result) {
-      var info;
-
       switch(mode) {
         case 'car':
-          info = carInfo(result, geoA, geoB);
+          getCar(result, geoA, geoB);
           break;
         case 'transit':
-          info = transitInfo(result);
+          getTransit(result);
           break;
       }
-
-      $(routeBox).html(info);
     },
     error: function(http) { $(routeBox).html(http.responseText); }
   });
 }
+
+function getCar(result, geoA, geoB) {
+  var coords = result['coordinates'];
+  var address = result['address'];
+  var carPosition = new google.maps.LatLng(coords[0], coords[1]);
+  new google.maps.Marker({
+    position: carPosition,
+    map: map,
+    icon: 'http://maps.gstatic.com/mapfiles/kml/pal4/icon54.png'
+  });
+
+  var planner = new google.maps.DirectionsService();
+
+  var $routeBox = $('#car-info');
+  var $verbiageBox = $('#verbiage');
+
+  planner.route(
+    { origin: geoA,
+      destination: carPosition,
+      travelMode: google.maps.TravelMode.WALKING
+    },
+    function(results, status) {
+      var firstRoute = results['routes'][0];
+      var directions = firstRoute['legs'][0];
+      var duration = directions['duration']['text'];
+      var distance = directions['distance']['text'];
+
+      $verbiageBox.append(firstRoute['warnings'][0]);
+      $verbiageBox.append(' ' + firstRoute['copyrights']);
+
+      $routeBox.children('.summary').append('The nearest car is around ' + address + ', a ' + distance + ' (about ' +  duration + ') walk away.');
+      $routeBox.children('.directions.walk').html('<button class="display-btn">show</button>');
+
+      renderDirections(directions, $routeBox.children('.walk.directions'));
+      drawRoute(directions['steps'], map);
+    });
+
+  planner.route(
+    { origin: carPosition,
+      destination: geoB,
+      travelMode: google.maps.TravelMode.DRIVING
+    },
+    function(results, status) {
+      var directions = results['routes'][0]['legs'][0];
+      var duration = directions['duration']['text'];
+      var distance = directions['distance']['text'];
+
+      $routeBox.children('.drive.directions').append('After you pick up the car, it\'s about a ' + duration + ' minute drive:');
+
+      renderDirections(directions, $routeBox.children('.drive.directions'));
+      drawRoute(directions['steps'], map);
+    });
+};
+
+function getWalk(geoA, geoB) {
+  var planner = new google.maps.DirectionsService();
+
+  var $routeBox = $('#walk-info');
+  var $summary = $routeBox.children('.summary');
+  var $directions = $routeBox.children('.directions');
+
+  planner.route(
+    { origin: geoA,
+      destination: geoB,
+      travelMode: google.maps.TravelMode.WALKING
+    },
+    function(results, status) {
+      var firstRoute = results['routes'][0];
+      var directions = firstRoute['legs'][0];
+      var duration = directions['duration']['text'];
+      var distance = directions['distance']['text'];
+
+      $summary.append('It\'s a ' + distance + ' (about ' + duration + ') walk.');
+      $directions.append('<button class="display-btn">show walking directions</button>');
+      $directions.children('.display-btn').on('click', function() {
+        return toggleDirections(directions, $directions);
+      });
+
+      drawRoute(directions['steps'], map);
+    }
+  );
+};
+
+function toggleDirections(directions, selector) {
+  console.log(directions);
+}
+
+function getTransit(result) {
+  var trip = result['directions'][0];
+  var legs = trip['legs'];
+
+  var planner = new google.maps.DirectionsService();
+  var walkTime = 0;
+  var transitTime = 0;
+  var waitTime = 0;
+
+  legs.forEach(function(leg, i, legs) {
+    if(leg['mode'] == 'WALK') {
+      planner.route(
+        { origin: new google.maps.LatLng(leg['from'][0], leg['from'][1]),
+          destination: new google.maps.LatLng(leg['to'][0], leg['to'][1]),
+          travelMode: google.maps.TravelMode.WALKING
+        },
+        function(results, status) {
+          var route = results['routes'][0];
+          var directions = route['legs'][0];
+
+          legs[i] = {
+            distance: directions['distance'],
+            duration: directions['duration'],
+            steps: directions['steps'],
+            mode: 'WALK'
+          };
+        }
+      );
+    }
+  });
+  console.log(legs);
+}
+
+
+// MAP DRAWING
 
 function placePins(geoA, geoB) {
   new google.maps.Marker({
@@ -106,94 +225,8 @@ function redrawMap(geoA, geoB) {
   map.fitBounds(bounds);
 }
 
-function carInfo(result, geoA, geoB) {
-  var coords = result['coordinates'];
-  var address = result['address'];
-  var carPosition = new google.maps.LatLng(coords[0], coords[1]);
-  new google.maps.Marker({
-    position: carPosition,
-    map: map,
-    icon: 'http://maps.gstatic.com/mapfiles/kml/pal4/icon54.png'
-  });
-
-  var planner = new google.maps.DirectionsService();
-
-  var $routeBox = $('#car-info');
-  var $verbiageBox = $('#verbiage');
-
-  planner.route(
-    { origin: geoA,
-      destination: carPosition,
-      travelMode: google.maps.TravelMode.WALKING
-    },
-    function(results, status) {
-      var firstRoute = results['routes'][0];
-      var directions = firstRoute['legs'][0];
-      var duration = directions['duration']['text'];
-      var distance = directions['distance']['text'];
-
-      $routeBox.append('The nearest car is around ' + address + ', a ' + distance + ' (about ' +  duration + ') walk away.');
-      $verbiageBox.append(firstRoute['warnings'][0]);
-      $verbiageBox.append(' ' + firstRoute['copyrights']);
-
-      renderDirections(directions, $routeBox);
-      drawRoute(directions['steps'], map);
-    });
-
-  planner.route(
-    { origin: carPosition,
-      destination: geoB,
-      travelMode: google.maps.TravelMode.DRIVING
-    },
-    function(results, status) {
-      console.log(results);
-      var directions = results['routes'][0]['legs'][0];
-      var duration = directions['duration']['text'];
-      var distance = directions['distance']['text'];
-
-      $routeBox.append('After you pick up the car, it\'s about a ' + duration + ' minute drive:');
-
-      renderDirections(directions, $routeBox);
-      drawRoute(directions['steps'], map);
-    });
-};
-
-function getWalk(geoA, geoB) {
-  var planner = new google.maps.DirectionsService();
-
-  var $routeBox = $('#walk-info');
-
-  planner.route(
-    { origin: geoA,
-      destination: geoB,
-      travelMode: google.maps.TravelMode.WALKING
-    },
-    function(results, status) {
-      var firstRoute = results['routes'][0];
-      var directions = firstRoute['legs'][0];
-      var duration = directions['duration']['text'];
-      var distance = directions['distance']['text'];
-
-      $routeBox.append('It\'s a ' + distance + ' (about ' + duration + ') walk.');
-
-      renderDirections(directions, $routeBox);
-      drawRoute(directions['steps'], map);
-    }
-  );
-};
-
-function transitInfo(result) {
-  var trip = result['directions'][0];
-  var legs = trip['legs'];
-  var instructions = '';
-
-  for(var i=0; i<legs.length; i++)
-    { instructions += (legs[i]['instructions'] + ' '); }
-
-  $('#transit-info').append(instructions);
-}
-
 function renderDirections(route, routeBox) {
+  routeBox.toggle();
   var steps = route['steps'];
 
   routeBox.append('<ol>');
