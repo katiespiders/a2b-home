@@ -41,8 +41,8 @@ function callAPI(geoA, geoB) {
     var car = host + 'car' + query;
     getRoute(car, 'car', geoA, geoB);
 
-    // var transit = host + 'transit' + query;
-    // getRoute(transit, 'transit', geoA, geoB);
+    var transit = host + 'transit' + query;
+    getRoute(transit, 'transit', geoA, geoB);
 
     getWalk(geoA, geoB);
   }
@@ -118,7 +118,7 @@ function getCar(result, geoA, geoB) {
 
       var $driveBox = $routeBox.children('.drive');
       var $driveSummary = $driveBox.children('.summary');
-      
+
       $driveSummary.append('After you pick up the car, it\'s about a ' + duration + ' minute drive:');
 
       appendDirections(directionsHTML(directions), ['show driving directions', 'hide driving directions'], $driveBox);
@@ -191,18 +191,54 @@ function getTransit(result) {
           var directions = route['legs'][0];
 
           legs[i] = {
-            distance: directions['distance'],
-            duration: directions['duration'],
+            distance: directions['distance']['value'],
+            duration: directions['duration']['value'],
             steps: directions['steps'],
             mode: 'WALK'
           };
+
+          if(i === legs.length-1) { transitHTML(legs); }
         }
       );
     }
   });
-  console.log(legs);
 }
 
+function transitSummary(legs) {
+
+  var firstTransit, lastTransit, firstWalk;
+  var walkTime = 0;
+  var transitTime = 0;
+
+  legs.forEach(function(leg, i, legs) {
+    if(leg['mode'] != 'WALK') {
+      firstTransit = firstTransit || leg;
+      lastTransit = leg;
+      transitTime += leg['duration'];
+    }
+    else {
+      firstWalk = firstWalk || leg;
+      walkTime += leg['duration'];
+    }
+  });
+
+  var totalTime = walkTime + transitTime;
+  var duration =
+  console.log(firstTransit, lastTransit, transitTime, firstWalk, walkTime);
+
+}
+
+function directionsHTML(route) {
+  var steps = route['steps'];
+
+  var str = '<ol>';
+  for(var i=0; i<steps.length; i++) {
+    str += ('<li>' + steps[i]['instructions'] + '</li>');
+  }
+  str += '</ol>';
+
+  return str;
+}
 
 // MAP DRAWING
 
@@ -231,25 +267,13 @@ function redrawMap(geoA, geoB) {
   var east = Math.max(lngA, lngB);
   var west = Math.min(lngA, lngB);
 
-  var paddingNS = (north - south) / 48;
-  var paddingEW = (east - west) / 48;
+  var paddingNS = 0; //(north - south) / 48;
+  var paddingEW = 0; // (east - west) / 48;
 
   var boundNE = new google.maps.LatLng(north + paddingNS, east + paddingEW);
   var boundSW = new google.maps.LatLng(south + paddingNS, west + paddingEW);
   var bounds = new google.maps.LatLngBounds(boundSW, boundNE);
   map.fitBounds(bounds);
-}
-
-function directionsHTML(route) {
-  var steps = route['steps'];
-
-  var str = '<ol>';
-  for(var i=0; i<steps.length; i++) {
-    str += ('<li>' + steps[i]['instructions'] + '</li>');
-  }
-  str += '</ol>';
-
-  return str;
 }
 
 function drawRoute(stepArray, map) {
