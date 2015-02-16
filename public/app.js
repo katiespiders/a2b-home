@@ -175,9 +175,6 @@ function getTransit(result) {
   var legs = trip['legs'];
 
   var planner = new google.maps.DirectionsService();
-  var walkTime = 0;
-  var transitTime = 0;
-  var waitTime = 0;
 
   legs.forEach(function(leg, i, legs) {
     if(leg['mode'] == 'WALK') {
@@ -198,7 +195,8 @@ function getTransit(result) {
             next_mode: leg['next_mode']
           };
 
-          if(i === legs.length-1) { transitSummary(legs); }
+          if(i === legs.length-1) {
+            transitSummary(legs); }
         }
       );
     }
@@ -206,8 +204,7 @@ function getTransit(result) {
 }
 
 function transitSummary(legs) {
-
-  var firstTransit, lastTransit, firstWalk, lastWalk;
+  var firstTransit, lastTransit, firstWalk;
   var walkTime = 0;
   var transitTime = 0;
 
@@ -218,11 +215,25 @@ function transitSummary(legs) {
       transitTime += leg['duration'];
     }
     else {
-      firstWalk = firstWalk || leg;
-      lastWalk = leg;
       walkTime += leg['duration'];
     }
   });
+
+  var transitDuration = lastTransit['stops']['off']['actual'] - firstTransit['stops']['on']['actual'];
+
+  if(legs[0]['mode'] == 'WALK') { firstWalk = legs[0]; }
+  if(legs[legs.length-1]['mode'] == 'WALK') { lastWalk = legs[legs.length-1] }
+
+  var totalDuration = transitDuration + firstWalk['duration'] + lastWalk['duration'];
+
+  var firstStop = firstTransit['stops']['on'];
+
+  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' in ' + timeDelta(firstStop['actual']) + ' minutes. This trip will take ' + totalDuration/60 + ' minutes.';
+
+  $('#transit-info').children('.summary').append(str);
+}
+
+function transitHTML(leg) {
 
 }
 
@@ -236,6 +247,11 @@ function directionsHTML(route) {
   str += '</ol>';
 
   return str;
+}
+
+// takes time in seconds since epoch; returns delta in minutes
+function timeDelta(time) {
+  return (new Date(time * 1000) - new Date()) / 60000;
 }
 
 // MAP DRAWING
