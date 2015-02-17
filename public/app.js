@@ -156,8 +156,10 @@ function getWalk(geoA, geoB) {
 };
 
 function getTransit(result) {
+  console.log(result);
   var trip = result['directions'];
   var legs = trip['legs'];
+  console.log(trip);
 
   var planner = new google.maps.DirectionsService();
 
@@ -169,6 +171,7 @@ function getTransit(result) {
           travelMode: google.maps.TravelMode.WALKING
         },
         function(results, status) {
+          console.log(results);
           var route = results['routes'][0];
           var directions = route['legs'][0];
 
@@ -177,7 +180,6 @@ function getTransit(result) {
             duration: directions['duration']['value'],
             steps: directions['steps'],
             mode: 'WALK',
-            next_mode: leg['next_mode']
           };
 
           if(i === legs.length-1) {
@@ -210,7 +212,7 @@ function transitSummary(legs) {
   var firstStop = firstTransit['stops']['on'];
 
   console.log(firstWalk);
-  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' at ' + firstStop['time_string'] + ' (' + firstStop['delta'] + ').';
+  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' at ' + firstStop['time_string'] + ' (' + firstStop['delta'] + '). ';
 
   $('#transit-info').children('.summary').append(str);
 }
