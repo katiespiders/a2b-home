@@ -1,10 +1,13 @@
+var overlays = [];
+
 $(document).ready(function() {
-  var map = loadMap();
+  loadMap();
 
   $('#submit').click(function(event) {
 
     event.preventDefault();
     clearBoxes();
+    clearOverlays();
 
     var addressA = $('#pointA').val() + ' Seattle';
     var addressB = $('#pointB').val() + ' Seattle';
@@ -33,8 +36,8 @@ $(document).ready(function() {
 function callAPI(geoA, geoB) {
   if(!geoA || !geoB) { return false; }
   else {
+    initializeMap(geoA, geoB);
     placePins(geoA, geoB);
-    redrawMap(geoA, geoB);
 
     var host = 'http://localhost:3000/';
     var query = '?origin=' + geoA.toUrlValue() + '&destination=' + geoB.toUrlValue();
@@ -73,11 +76,11 @@ function getCar(result, geoA, geoB) {
   var coords = result['coordinates'];
   var address = result['address'];
   var carPosition = new google.maps.LatLng(coords[0], coords[1]);
-  new google.maps.Marker({
+  overlays.push(new google.maps.Marker({
     position: carPosition,
     map: map,
     icon: 'http://maps.gstatic.com/mapfiles/kml/pal4/icon54.png'
-  });
+  }));
 
   var planner = new google.maps.DirectionsService();
 
@@ -206,7 +209,7 @@ function transitSummary(legs) {
 
   var firstStop = firstTransit['stops']['on'];
 
-  console.log(firstTransit, firstStop);
+  console.log(firstWalk);
   var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' at ' + firstStop['time_string'] + ' (' + firstStop['delta'] + ').';
 
   $('#transit-info').children('.summary').append(str);
@@ -261,22 +264,25 @@ function toggleDirections(buttonStates, $directionsBox, $button) {
 }
 
 // MAP DRAWING
+function clearOverlays() {
+  while(overlays[0]) { overlays.pop().setMap(null); }
+}
 
 function placePins(geoA, geoB) {
-  new google.maps.Marker({
+  overlays.push(new google.maps.Marker({
     position: geoA,
     map: map,
     icon: 'http://maps.gstatic.com/mapfiles/markers2/marker_greenA.png'
-  });
+  }));
 
-  new google.maps.Marker({
+  overlays.push(new google.maps.Marker({
     position: geoB,
     map: map,
     icon: 'http://maps.gstatic.com/mapfiles/markers2/markerB.png'
-  });
+  }));
 }
 
-function redrawMap(geoA, geoB) {
+function initializeMap(geoA, geoB) {
   var latA = geoA.lat();
   var latB = geoB.lat();
   var lngA = geoA.lng();
@@ -305,6 +311,7 @@ function drawRoute(stepArray, map) {
 function drawPolyline(encodedPoints, map) {
   var decodedPoints = google.maps.geometry.encoding.decodePath(encodedPoints);
   var line = new google.maps.Polyline( { path: decodedPoints } );
+  overlays.push(line);
   line.setMap(map);
 }
 
