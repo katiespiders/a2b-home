@@ -80,7 +80,6 @@ function getCar(result, geoA, geoB) {
 
   var planner = new google.maps.DirectionsService();
 
-  var $routeBox = $('#car-info');
   var $verbiageBox = $('#verbiage');
 
   planner.route(
@@ -97,7 +96,7 @@ function getCar(result, geoA, geoB) {
       var verbiage = route['warnings'][0] + ' ' + route['copyrights'];
       $verbiageBox.html(verbiage);
 
-      var $walkBox = $routeBox.children('.walk');
+      var $walkBox = $('#car-walk');
       var $walkSummary = $walkBox.children('.summary');
 
       $walkSummary.append('The nearest car is around ' + address + ', a ' + distance + ' (about ' +  duration + ') walk away.');
@@ -116,7 +115,7 @@ function getCar(result, geoA, geoB) {
       var duration = directions['duration']['text'];
       var distance = directions['distance']['text'];
 
-      var $driveBox = $routeBox.children('.drive');
+      var $driveBox = $('#car-drive');
       var $driveSummary = $driveBox.children('.summary');
 
       $driveSummary.append('After you pick up the car, it\'s about a ' + duration + ' minute drive:');
@@ -153,7 +152,7 @@ function getWalk(geoA, geoB) {
 };
 
 function getTransit(result) {
-  var trip = result['directions'][0];
+  var trip = result['directions'];
   var legs = trip['legs'];
 
   var planner = new google.maps.DirectionsService();
