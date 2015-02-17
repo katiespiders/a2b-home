@@ -4,6 +4,7 @@ $(document).ready(function() {
   $('#submit').click(function(event) {
 
     event.preventDefault();
+    clearBoxes();
 
     var addressA = $('#pointA').val() + ' Seattle';
     var addressB = $('#pointB').val() + ' Seattle';
@@ -228,6 +229,19 @@ function directionsHTML(route) {
 }
 
 // DIRECTIONS RENDERING
+function clearBoxes() {
+  boxes = [
+    $('#car-walk'),
+    $('#car-drive'),
+    $('#walk-info'),
+    $('#transit-info')
+  ]
+
+  boxes.forEach(function($box) {
+    $box.children().each(function() { $(this).empty(); });
+   });
+}
+
 function appendDirections(directions, buttonStates, $parentBox) {
   var $summaryBox = $parentBox.children('.summary');
   var $directionsBox = $parentBox.children('.directions');
