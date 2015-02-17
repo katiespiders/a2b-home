@@ -152,24 +152,6 @@ function getWalk(geoA, geoB) {
   );
 };
 
-function appendDirections(directions, buttonStates, $parentBox) {
-  var $summaryBox = $parentBox.children('.summary');
-  var $directionsBox = $parentBox.children('.directions');
-
-  $summaryBox.append('<button class="display-btn">' + buttonStates[0] + '</button>');
-  $summaryBox.children('.display-btn').on('click', function() {
-    return toggleDirections(buttonStates, $directionsBox, $(this));
-  });
-
-  $directionsBox.append(directions);
-}
-
-function toggleDirections(buttonStates, $directionsBox, $button) {
-  if($button.html() === buttonStates[0]) { $button.html(buttonStates[1]); }
-  else { $button.html(buttonStates[0]); }
-  $directionsBox.toggle();
-}
-
 function getTransit(result) {
   var trip = result['directions'][0];
   var legs = trip['legs'];
@@ -204,7 +186,7 @@ function getTransit(result) {
 }
 
 function transitSummary(legs) {
-  var firstTransit, lastTransit, firstWalk;
+  var firstTransit, lastTransit;
   var walkTime = 0;
   var transitTime = 0;
 
@@ -219,16 +201,13 @@ function transitSummary(legs) {
     }
   });
 
-  var transitDuration = lastTransit['stops']['off']['actual'] - firstTransit['stops']['on']['actual'];
-
-  if(legs[0]['mode'] == 'WALK') { firstWalk = legs[0]; }
-  if(legs[legs.length-1]['mode'] == 'WALK') { lastWalk = legs[legs.length-1] }
-
-  var totalDuration = transitDuration + firstWalk['duration'] + lastWalk['duration'];
+  if(legs[0]['mode'] == 'WALK') { var firstWalk = legs[0]; }
+  if(legs[legs.length-1]['mode'] == 'WALK') { var lastWalk = legs[legs.length-1] }
 
   var firstStop = firstTransit['stops']['on'];
 
-  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' in ' + timeDelta(firstStop['actual']) + ' minutes. This trip will take ' + totalDuration/60 + ' minutes.';
+  console.log(firstTransit, firstStop);
+  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' at ' + firstStop['time_string'] + ' (' + firstStop['delta'] + ').';
 
   $('#transit-info').children('.summary').append(str);
 }
@@ -249,9 +228,23 @@ function directionsHTML(route) {
   return str;
 }
 
-// takes time in seconds since epoch; returns delta in minutes
-function timeDelta(time) {
-  return (new Date(time * 1000) - new Date()) / 60000;
+// DIRECTIONS RENDERING
+function appendDirections(directions, buttonStates, $parentBox) {
+  var $summaryBox = $parentBox.children('.summary');
+  var $directionsBox = $parentBox.children('.directions');
+
+  $summaryBox.append('<button class="display-btn">' + buttonStates[0] + '</button>');
+  $summaryBox.children('.display-btn').on('click', function() {
+    return toggleDirections(buttonStates, $directionsBox, $(this));
+  });
+
+  $directionsBox.append(directions);
+}
+
+function toggleDirections(buttonStates, $directionsBox, $button) {
+  if($button.html() === buttonStates[0]) { $button.html(buttonStates[1]); }
+  else { $button.html(buttonStates[0]); }
+  $directionsBox.toggle();
 }
 
 // MAP DRAWING
