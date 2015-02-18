@@ -157,9 +157,7 @@ function getWalk(geoA, geoB) {
 
 function getTransit(result) {
   console.log(result);
-  var trip = result['directions'];
-  var legs = trip['legs'];
-  console.log(trip);
+  var legs = result['legs'];
 
   var planner = new google.maps.DirectionsService();
 
@@ -171,7 +169,6 @@ function getTransit(result) {
           travelMode: google.maps.TravelMode.WALKING
         },
         function(results, status) {
-          console.log(results);
           var route = results['routes'][0];
           var directions = route['legs'][0];
 
@@ -208,11 +205,9 @@ function transitSummary(legs) {
 
   if(legs[0]['mode'] == 'WALK') { var firstWalk = legs[0]; }
   if(legs[legs.length-1]['mode'] == 'WALK') { var lastWalk = legs[legs.length-1] }
+  var firstStop = firstTransit['board'];
 
-  var firstStop = firstTransit['stops']['on'];
-
-  console.log(firstWalk);
-  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' at ' + firstStop['time_string'] + ' (' + firstStop['delta'] + '). ';
+  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' at ' + firstTransit['start_display'] + ' (' + firstStop['delta'] + ').';
 
   $('#transit-info').children('.summary').append(str);
 }

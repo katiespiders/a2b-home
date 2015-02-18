@@ -6,8 +6,10 @@
 	%head
 	%title seattle a2b
 	-# %meta{name: 'viewport', content: 'width=device-width, initial-scale=1'}
+	
 	%link{type: 'text/css', rel: 'stylesheet', href: 'bootstrap.min.css'}
 	%link{type: 'text/css', rel: 'stylesheet', href: 'app.css'}
+
 	%script{type: 'text/javascript', src: "https://maps.googleapis.com/maps/api/js?key=#{ENV['GOOGLE_KEY']}"}
 	%script{type: 'text/javascript', src: 'jquery-2.1.3.min.js'}
 	%script{type: 'text/javascript', src: 'app.js'}
@@ -20,11 +22,16 @@
 				%input#pointA{type: 'text', name: 'pointA', placeholder: 'point A', value: '1301 5th Ave'}
 			%span
 				%label{for: 'pointB'} Point B:
-				%input#pointB{type: 'text', name: 'pointB', placeholder: 'point B', value: '525 21st Ave'}
+				%input#pointB{type: 'text', name: 'pointB', placeholder: 'point B', value: '352 N 80th St'}
 			%span
 				%button#submit plan trip
 
 		.row.trips
+			#transit.col-sm-4
+				%h3 transit
+				#transit-info
+					.summary
+					.directions
 			#car.col-sm-4
 				%h3 car
 				#car-info
@@ -37,11 +44,6 @@
 			#walk.col-sm-4
 				%h3 walk
 				#walk-info
-					.summary
-					.directions
-			#transit.col-sm-4
-				%h3 transit
-				#transit-info
 					.summary
 					.directions
 
