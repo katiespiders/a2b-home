@@ -3,7 +3,7 @@ lock '3.3.5'
 
 set :application, 'home-a2b'
 set :repo_url, 'git@github.com:katiespiders/a2b-home.git'
-set :use_sudo, true
+set :use_sudo, false
 
 set :deploy_to, '/var/www/a2b-main'
 
