@@ -33,11 +33,11 @@
 #
 # And/or per server (overrides global)
 # ------------------------------------
-server '54.69.77.91',
+server '52.10.124.95',
   user: 'ubuntu',
   roles: %w{web app},
   ssh_options: {
-    keys: %w(/Users/Katie/.ssh/main-a2b.pem),
+    keys: %w(/Users/Katie/.ssh/main3.pem),
     forward_agent: false,
     auth_methods: %w(publickey)
   }

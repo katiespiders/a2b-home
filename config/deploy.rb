@@ -1,7 +1,7 @@
 # config valid only for current version of Capistrano
 lock '3.3.5'
 
-set :application, 'home-a2b'
+set :application, 'a2b-main'
 set :repo_url, 'git@github.com:katiespiders/a2b-home.git'
 set :use_sudo, false
 
