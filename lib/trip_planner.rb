@@ -1,4 +1,3 @@
-require 'httparty'
 require './lib/car'
 require './lib/walk'
 require './lib/transit'
