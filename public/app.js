@@ -164,8 +164,8 @@ function getTransit(result) {
   legs.forEach(function(leg, i, legs) {
     if(leg['mode'] == 'WALK') {
       planner.route(
-        { origin: new google.maps.LatLng(leg['from'][0], leg['from'][1]),
-          destination: new google.maps.LatLng(leg['to'][0], leg['to'][1]),
+        { origin: new google.maps.LatLng(leg['origin'][0], leg['origin'][1]),
+          destination: new google.maps.LatLng(leg['destination'][0], leg['destination'][1]),
           travelMode: google.maps.TravelMode.WALKING
         },
         function(results, status) {
