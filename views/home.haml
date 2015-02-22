@@ -1,7 +1,5 @@
 !!! 5
 
-- require './lib/trip_planner'
-
 %html
 	%head
 	%title seattle a2b
@@ -19,21 +17,27 @@
 		%form#a2b
 			%span
 				%label{for: 'pointA'} Point A:
-				%input#pointA{type: 'text', name: 'pointA', placeholder: 'point A', value: '1301 5th Ave'}
+				%input#pointA{type: 'text', name: 'pointA', placeholder: 'point A', value: '352 N 80th St'}
 			%span
 				%label{for: 'pointB'} Point B:
-				%input#pointB{type: 'text', name: 'pointB', placeholder: 'point B', value: '352 N 80th St'}
+				%input#pointB{type: 'text', name: 'pointB', placeholder: 'point B', value: '1301 5th Ave'}
 			%span
 				%button#submit plan trip
+			%span
+				%button#clear clear trip
 
 		.row.trips
 			#transit.col-sm-4
 				%h3 transit
+				.loader
+					%img{src: 'black-ajax-loader.gif'}
 				#transit-info
 					.summary
 					.directions
 			#car.col-sm-4
 				%h3 car
+				.loader
+					%img{src: 'black-ajax-loader.gif'}
 				#car-info
 					#car-walk
 						.summary

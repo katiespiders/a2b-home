@@ -1,4 +1,3 @@
-require './lib/trip_planner'
 require 'sinatra'
 
 get '/' do
