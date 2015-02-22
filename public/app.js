@@ -39,7 +39,7 @@ function callAPI(geoA, geoB) {
     initializeMap(geoA, geoB);
     placePins(geoA, geoB);
 
-    var host = 'http://localhost:3000/';
+    var host = 'http://api.seattle-a2b.com/';
     var query = '?origin=' + geoA.toUrlValue() + '&destination=' + geoB.toUrlValue();
 
     var car = host + 'car' + query;
@@ -156,8 +156,8 @@ function getWalk(geoA, geoB) {
 };
 
 function getTransit(result) {
-  console.log(result);
   var legs = result['legs'];
+  console.log(legs);
 
   var planner = new google.maps.DirectionsService();
 
