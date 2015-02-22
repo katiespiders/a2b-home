@@ -3,11 +3,22 @@ var overlays = [];
 $(document).ready(function() {
   loadMap();
 
+  $('#clear').click(function(event) {
+    event.preventDefault();
+
+    clearBoxes();
+    clearOverlays();
+    resetMap();
+    $('#pointA').val('');
+    $('#pointB').val('');
+  });
+
   $('#submit').click(function(event) {
 
     event.preventDefault();
     clearBoxes();
     clearOverlays();
+    $('.loader').toggle(true);
 
     var addressA = $('#pointA').val() + ' Seattle';
     var addressB = $('#pointB').val() + ' Seattle';
@@ -36,7 +47,7 @@ $(document).ready(function() {
 function callAPI(geoA, geoB) {
   if(!geoA || !geoB) { return false; }
   else {
-    initializeMap(geoA, geoB);
+    redrawMap(geoA, geoB);
     placePins(geoA, geoB);
 
     var host = 'http://localhost:3000/';
@@ -53,12 +64,15 @@ function callAPI(geoA, geoB) {
 }
 
 function getRoute(url, mode, geoA, geoB) {
-  var routeBox = '#' + mode + '-info';
+  var routeBoxName = '#' + mode + '-info';
+  var $routeBox = $(routeBoxName);
+  var $loaderBox = $routeBox.siblings('.loader');
 
   $.ajax( {
     url: url,
     crossDomain: true,
     success: function(result) {
+      $loaderBox.toggle(false);
       switch(mode) {
         case 'car':
           getCar(result, geoA, geoB);
@@ -68,13 +82,14 @@ function getRoute(url, mode, geoA, geoB) {
           break;
       }
     },
-    error: function(http) { $(routeBox).html(http.responseText); }
+    error: function(http) { $(routeBoxName).html(http.responseText); }
   });
 }
 
 function getCar(result, geoA, geoB) {
-  var coords = result['coordinates'];
-  var address = result['address'];
+  var nearest = result[0];
+  var coords = nearest['coordinates'];
+  var address = nearest['address'];
   var carPosition = new google.maps.LatLng(coords[0], coords[1]);
   overlays.push(new google.maps.Marker({
     position: carPosition,
@@ -85,6 +100,8 @@ function getCar(result, geoA, geoB) {
   var planner = new google.maps.DirectionsService();
 
   var $verbiageBox = $('#verbiage');
+  var $infoBox = $('#car-info');
+  $infoBox.toggle(true);
 
   planner.route(
     { origin: geoA,
@@ -142,6 +159,7 @@ function getWalk(geoA, geoB) {
       travelMode: google.maps.TravelMode.WALKING
     },
     function(results, status) {
+      $routeBox.toggle(true);
       var firstRoute = results['routes'][0];
       var directions = firstRoute['legs'][0];
       var duration = directions['duration']['text'];
@@ -156,9 +174,9 @@ function getWalk(geoA, geoB) {
 };
 
 function getTransit(result) {
-  var legs = result['legs'];
-  console.log(legs);
+  $('#transit-info').toggle();
 
+  var legs = result['legs'];
   var planner = new google.maps.DirectionsService();
 
   legs.forEach(function(leg, i, legs) {
@@ -207,7 +225,7 @@ function transitSummary(legs) {
   if(legs[legs.length-1]['mode'] == 'WALK') { var lastWalk = legs[legs.length-1] }
   var firstStop = firstTransit['board'];
 
-  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' at ' + firstTransit['start_display'] + ' (' + firstStop['delta'] + ').';
+  var str = 'Walk to ' + firstStop['name'] + ' (about a ' + firstWalk['duration']/60 + ' minute walk away) to catch the ' + firstTransit['route'] + ' at ' + firstTransit['start_display'] + ' ' + firstStop['delta'] + '.';
 
   $('#transit-info').children('.summary').append(str);
 }
@@ -231,10 +249,10 @@ function directionsHTML(route) {
 // DIRECTIONS RENDERING
 function clearBoxes() {
   boxes = [
+    $('#transit-info'),
     $('#car-walk'),
     $('#car-drive'),
-    $('#walk-info'),
-    $('#transit-info')
+    $('#walk-info')
   ]
 
   boxes.forEach(function($box) {
@@ -279,7 +297,7 @@ function placePins(geoA, geoB) {
   }));
 }
 
-function initializeMap(geoA, geoB) {
+function redrawMap(geoA, geoB) {
   var latA = geoA.lat();
   var latB = geoB.lat();
   var lngA = geoA.lng();
@@ -310,6 +328,11 @@ function drawPolyline(encodedPoints, map) {
   var line = new google.maps.Polyline( { path: decodedPoints } );
   overlays.push(line);
   line.setMap(map);
+}
+
+function resetMap() {
+  map.setCenter( { lat: 47.6097, lng: -122.3331 } );
+  map.setZoom(11);
 }
 
 function loadMap() {
