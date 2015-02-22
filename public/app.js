@@ -39,7 +39,7 @@ function callAPI(geoA, geoB) {
     initializeMap(geoA, geoB);
     placePins(geoA, geoB);
 
-    var host = 'http://api.seattle-a2b.com/';
+    var host = 'http://localhost:3000/';
     var query = '?origin=' + geoA.toUrlValue() + '&destination=' + geoB.toUrlValue();
 
     var car = host + 'car' + query;
