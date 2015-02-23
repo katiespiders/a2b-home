@@ -51,7 +51,7 @@ function callAPI(geoA, geoB) {
     redrawMap(geoA, geoB);
     placePins(geoA, geoB);
 
-    var host = 'http://api.seattle-a2b.com/'; //'http://localhost:3000/'; 
+    var host =  'http://api.seattle-a2b.com/'; //'http://localhost:3000/';
     var query = '?origin=' + geoA.toUrlValue() + '&destination=' + geoB.toUrlValue();
 
     var car = host + 'car' + query;
@@ -87,6 +87,37 @@ function getRoute(url, mode, geoA, geoB) {
   });
 }
 
+function getTransit(result) {
+  $('#transit-info').toggle();
+
+  var legs = result['legs'];
+  var planner = new google.maps.DirectionsService();
+
+  legs.forEach(function(leg, i, legs) {
+    if(leg['mode'] == 'WALK') {
+      planner.route(
+        { origin: new google.maps.LatLng(leg['origin'][0], leg['origin'][1]),
+          destination: new google.maps.LatLng(leg['destination'][0], leg['destination'][1]),
+          travelMode: google.maps.TravelMode.WALKING
+        },
+        function(results, status) {
+          var route = results['routes'][0];
+          var directions = route['legs'][0];
+
+          legs[i] = {
+            distance: directions['distance']['value'],
+            duration: directions['duration']['value'],
+            steps: directions['steps'],
+            mode: 'WALK',
+          };
+
+          if(i === legs.length-1) { transitSummary(legs); transitHeader(result)  }
+        }
+      );
+    }
+  });
+}
+
 function getCar(result, geoA, geoB) {
   var $infoBox = $('#car-info');
   var $header = $infoBox.siblings('h3');
@@ -119,8 +150,6 @@ function getCar(result, geoA, geoB) {
     },
     function(results, status) {
       var route = results['routes'][0];
-      var verbiage = route['warnings'][0] + ' ' + route['copyrights'];
-      $('footer').html(verbiage);
 
       var directions = route['legs'][0];
       var distance = directions['distance']['value'];
@@ -172,6 +201,140 @@ function totalCarTime(walkTime, driveTime, $box) {
   }
 }
 
+function getWalk(geoA, geoB) {
+  var planner = new google.maps.DirectionsService();
+
+  var $routeBox = $('#walk-info');
+  var $headerBox = $routeBox.siblings('h3');
+  var $loaderBox = $routeBox.siblings('.loader');
+  var $summaryBox = $routeBox.children('.summary');
+  var $directionsBox = $routeBox.children('.directions');
+
+  planner.route(
+    { origin: geoA,
+      destination: geoB,
+      travelMode: google.maps.TravelMode.WALKING
+    },
+    function(results, status) {
+      $routeBox.toggle(true);
+      $loaderBox.toggle(false);
+      var firstRoute = results['routes'][0];
+      var directions = firstRoute['legs'][0];
+      var distance = directions['distance']['value'];
+      var duration = directions['duration']['value'];
+      var verbiage = firstRoute['copyrights'] + ' . ' + firstRoute['warnings'][0];
+
+      $('footer').append(verbiage);
+      $summaryBox.append(showDuration(duration) + ' (' + showDistance(distance) + ')');
+      $headerBox.append('<span>' + showArrivalTime(duration) + ' (free)</span>');
+      appendDirections(directionsHTML(directions), $routeBox);
+      drawRoute(directions['steps'], 'green', map);
+    }
+  );
+};
+
+// DIRECTIONS RENDERING
+function clearBoxes() {
+  var headers = [
+    $('#transit').children('h3'),
+    $('#car').children('h3'),
+    $('#walk').children('h3')
+  ]
+
+  headers.forEach(function($header) {
+    $header.children('span').remove();
+  })
+
+  var boxes = [
+    $('#transit-info'),
+    $('#car-walk'),
+    $('#car-drive'),
+    $('#walk-info')
+  ]
+
+  boxes.forEach(function($box) {
+    $box.toggle(false);
+    $box.children().each(function() { $(this).empty(); });
+   });
+
+  $('#car-info').toggle(false);
+
+  $('footer').empty();
+}
+
+function appendDirections(directions, $parentBox) {
+  var $summaryBox = $parentBox.children('.summary');
+  var $directionsBox = $parentBox.children('.directions');
+
+  if(directions) {
+    $summaryBox.append('<div class="inline-btn"><button class="display-btn btn-link">show directions</button></div>');
+    $summaryBox.find('.display-btn').on('click', function() {
+      return toggleDirections($directionsBox, $(this));
+    });
+    $directionsBox.append('<div>' + directions + '</div>');
+  }
+  else { $summaryBox.append(' (no directions :( )'); }
+}
+
+function toggleDirections($directionsBox, $button) {
+  if($button.html() === 'show directions') { $button.html('hide directions'); }
+  else { $button.html('show directions'); }
+  $directionsBox.toggle();
+}
+
+function directionsHTML(route) {
+  var steps = route['steps'];
+  if(!steps) { return false; }
+  var regex = /<div.*<\/div>/;
+
+  var str = '<ul>';
+  for(var i=0; i<steps.length; i++) {
+    str += '<li>' + steps[i]['instructions'].replace(regex, '');
+    str += ' for ' + showDistance(steps[i]['distance']['value']) + '</li>';
+  }
+  str += '</ul>';
+
+  return str;
+}
+
+function transitSummary(legs) {
+  var $routeBox = $('#transit-info');
+  var firstTransitIndex;
+
+  legs.forEach(function(leg, i, legs) {
+    if(leg['mode'] == 'WALK') {
+      var summary = '<div class="leg"><div class="summary">Walk <strong>' + showDuration(leg['duration']) + ' </strong> (' + showDistance(leg['distance']) + ')</div><div class="directions"></div></div>';
+      $routeBox.append(summary);
+      appendDirections(directionsHTML(leg), $routeBox.children('.leg').last());
+    }
+    else {
+      if(!firstTransitIndex) { firstTransitIndex = i; }
+      var summary = '<div class="leg">At <strong>' + leg['board']['name'] + '</strong>, get the <strong>' + leg['route'] + '</strong> ' + leg['mode'].toLowerCase();
+      if(i===firstTransitIndex) { summary += ' at <strong>' + leg['start_display'] + '</strong> ' + leg['board']['delta']; }
+      summary += '<div>Get off at <strong>' + leg['alight']['name'] + '</strong></div>';
+
+      $routeBox.append(summary);
+    }
+  });
+}
+
+function transitHeader(trip) {
+  var $routeBox = $('#transit-info');
+  var $headerBox = $routeBox.siblings('h3');
+  var summary = trip['summary'];
+  var fare = trip['fare'] ? showMoney(trip['fare']) : '$?.??';
+  var headerString = '<span>: ' + summary['arrival_time'];
+
+  if(trip['legs'].length === 1) {
+    $headerBox.append(headerString + '...just walk (free)');
+    $('#walk').toggle(false);
+  }
+  else {
+    $headerBox.append('<span>: ' + summary['arrival_time'] + ' (' + fare + ' or free)');
+  }
+}
+
+// HELPER FUNCTIONS
 function showMoney(cents) {
   return '$' + (cents/100).toFixed(2);
 }
@@ -226,166 +389,6 @@ function numberUnits(number, unit) {
   if(unit === 'foot') { numberString += (number === 1.0 ? 'foot' : 'feet'); }
   else { numberString += (number === 1.0 ? unit : unit + 's'); }
   return numberString;
-}
-
-function getWalk(geoA, geoB) {
-  var planner = new google.maps.DirectionsService();
-
-  var $routeBox = $('#walk-info');
-  var $headerBox = $routeBox.siblings('h3');
-  var $loaderBox = $routeBox.siblings('.loader');
-  var $summaryBox = $routeBox.children('.summary');
-  var $directionsBox = $routeBox.children('.directions');
-
-  planner.route(
-    { origin: geoA,
-      destination: geoB,
-      travelMode: google.maps.TravelMode.WALKING
-    },
-    function(results, status) {
-      $routeBox.toggle(true);
-      $loaderBox.toggle(false);
-      var firstRoute = results['routes'][0];
-      var directions = firstRoute['legs'][0];
-      var distance = directions['distance']['value'];
-      var duration = directions['duration']['value'];
-
-      $summaryBox.append(showDuration(duration) + ' (' + showDistance(distance) + ')');
-      $headerBox.append('<span>' + showArrivalTime(duration) + ' (free)</span>');
-      appendDirections(directionsHTML(directions), $routeBox);
-      drawRoute(directions['steps'], 'green', map);
-    }
-  );
-};
-
-function getTransit(result) {
-  $('#transit-info').toggle();
-
-  var legs = result['legs'];
-  var planner = new google.maps.DirectionsService();
-
-  legs.forEach(function(leg, i, legs) {
-    if(leg['mode'] == 'WALK') {
-      planner.route(
-        { origin: new google.maps.LatLng(leg['origin'][0], leg['origin'][1]),
-          destination: new google.maps.LatLng(leg['destination'][0], leg['destination'][1]),
-          travelMode: google.maps.TravelMode.WALKING
-        },
-        function(results, status) {
-          var route = results['routes'][0];
-          var directions = route['legs'][0];
-
-          legs[i] = {
-            distance: directions['distance']['value'],
-            duration: directions['duration']['value'],
-            steps: directions['steps'],
-            mode: 'WALK',
-          };
-
-          if(i === legs.length-1) { transitSummary(legs); transitHeader(result)  }
-        }
-      );
-    }
-  });
-}
-
-function transitSummary(legs) {
-  var $routeBox = $('#transit-info');
-  var firstTransitIndex;
-
-  legs.forEach(function(leg, i, legs) {
-    if(leg['mode'] == 'WALK') {
-      var summary = '<div class="leg"><div class="summary">Walk <strong>' + showDuration(leg['duration']) + ' </strong> (' + showDistance(leg['distance']) + ')</div><div class="directions"></div></div>';
-      $routeBox.append(summary);
-      appendDirections(directionsHTML(leg), $routeBox.children('.leg').last());
-    }
-    else {
-      if(!firstTransitIndex) { firstTransitIndex = i; }
-      var summary = '<div class="leg">At <strong>' + leg['board']['name'] + '</strong>, get the <strong>' + leg['route'] + '</strong> ' + leg['mode'].toLowerCase();
-      if(i===firstTransitIndex) { summary += ' at <strong>' + leg['start_display'] + '</strong> ' + leg['board']['delta']; }
-      summary += '<div>Get off at <strong>' + leg['alight']['name'] + '</strong></div>';
-
-      $routeBox.append(summary);
-    }
-  });
-}
-
-function transitHeader(trip) {
-  var $routeBox = $('#transit-info');
-  var $headerBox = $routeBox.siblings('h3');
-  var summary = trip['summary'];
-  var fare = trip['fare'] ? showMoney(trip['fare']) : '$?.??';
-  var headerString = '<span>: ' + summary['arrival_time'];
-
-  if(trip['legs'].length === 1) {
-    $headerBox.append(headerString + '...just walk (free)');
-    $('#walk').toggle(false);
-  }
-  else {
-    $headerBox.append('<span>: ' + summary['arrival_time'] + ' (' + fare + ' or free)');
-  }
-}
-
-function directionsHTML(route) {
-  var steps = route['steps'];
-  if(!steps) { return false; }
-  var regex = /<div.*<\/div>/;
-
-  var str = '<ul>';
-  for(var i=0; i<steps.length; i++) {
-    str += '<li>' + steps[i]['instructions'].replace(regex, '');
-    str += ' for ' + showDistance(steps[i]['distance']['value']) + '</li>';
-  }
-  str += '</ul>';
-
-  return str;
-}
-
-// DIRECTIONS RENDERING
-function clearBoxes() {
-  var headers = [
-    $('#transit').children('h3'),
-    $('#car').children('h3'),
-    $('#walk').children('h3')
-  ]
-
-  headers.forEach(function($header) {
-    $header.children('span').remove();
-  })
-
-  var boxes = [
-    $('#transit-info'),
-    $('#car-walk'),
-    $('#car-drive'),
-    $('#walk-info')
-  ]
-
-  boxes.forEach(function($box) {
-    $box.toggle(false);
-    $box.children().each(function() { $(this).empty(); });
-   });
-
-  $('#car-info').toggle(false);
-}
-
-function appendDirections(directions, $parentBox) {
-  var $summaryBox = $parentBox.children('.summary');
-  var $directionsBox = $parentBox.children('.directions');
-
-  if(directions) {
-    $summaryBox.append('<div class="inline-btn"><button class="display-btn btn-link">show directions</button></div>');
-    $summaryBox.find('.display-btn').on('click', function() {
-      return toggleDirections($directionsBox, $(this));
-    });
-    $directionsBox.append('<div>' + directions + '</div>');
-  }
-  else { $summaryBox.append(' (no directions :( )'); }
-}
-
-function toggleDirections($directionsBox, $button) {
-  if($button.html() === 'show directions') { $button.html('hide directions'); }
-  else { $button.html('show directions'); }
-  $directionsBox.toggle();
 }
 
 // MAP DRAWING

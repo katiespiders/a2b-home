@@ -6,13 +6,8 @@ ul {
   list-style-type: none;
 }
 
-#a2b {
-  margin: 5px;
-  text-align: center;
-}
-
-#a2b div {
-  display: inline-block;
+footer {
+  margin: 20px;
 }
 
 .loader {
@@ -29,9 +24,22 @@ ul {
   display: inline-block;
 }
 
-#map-canvas {
-  height: 60vh;
-  width: 90vw;
+.btn-link:hover {
+  color: #428bca;
+  text-decoration: none;
+}
+
+.directions {
+  display: none;
+}
+
+#a2b {
+  margin: 5px;
+  text-align: center;
+}
+
+#a2b div {
+  display: inline-block;
 }
 
 #trips {
@@ -51,16 +59,15 @@ ul {
   text-align: center;
 }
 
+#map-canvas {
+  height: 60vh;
+  width: 90vw;
+  border-style: solid;
+  margin: 5px;
+}
+
 #verbiage {
   height: 50px;
   width: 90vw;
   border-style: solid;
-}
-
-.directions {
-  display: none;
-}
-
-footer {
-  margin: 20px;
 }
