@@ -124,7 +124,7 @@ function getCar(result, geoA, geoB) {
       $walkBox.toggle(true);
       var $walkSummary = $walkBox.children('.summary');
 
-      $walkSummary.append('Walk <strong>' + showDuration(duration) + '</strong> (' + showDistance(distance, false) + '), to about ' + address);
+      $walkSummary.append('Walk <strong>' + showDuration(duration) + '</strong> (' + showDistance(distance) + '), to about ' + address);
       appendDirections(directionsHTML(directions), $walkBox)
 
       drawRoute(directions['steps'], 'green', map);
@@ -169,14 +169,18 @@ function showMoney(cents) {
 }
 
 function showDistance(meters, metric) {
-  if(metric) {
-    var distance = (meters/1000).toFixed(1);
-    return numberUnits(distance, 'kilometer');
+  var distance, unit;
+
+  if(meters < 161){
+    if(metric) { distance = meters; unit = 'meter'}
+    else { distance = Math.round(meters / 1.60934); unit = 'foot' }
   }
   else {
-    var distance = (meters/1609.34).toFixed(1);
-    return numberUnits(distance, 'mile');;
+    if(metric) { distance = (meters/1000).toFixed(1); unit = 'kilometer'; }
+    else { distance = (meters/1609.34).toFixed(1); unit = 'mile'; }
   }
+
+  return numberUnits(distance, unit);
 }
 
 function showDuration(seconds) {
@@ -207,7 +211,11 @@ function showArrivalTime(duration) {
 }
 
 function numberUnits(number, unit) {
-  return number + (number == 1.0 ? (' ' + unit) : (' ' + unit + 's'));
+
+  var numberString = number + ' ';
+  if(unit === 'foot') { numberString += (number === 1.0 ? 'foot' : 'feet'); }
+  else { numberString += (number === 1.0 ? unit : unit + 's'); }
+  return numberString;
 }
 
 function getWalk(geoA, geoB) {
@@ -303,10 +311,12 @@ function transitHeader(trip) {
 
 function directionsHTML(route) {
   var steps = route['steps'];
+  var regex = /<div.*<\/div>/;
 
   var str = '<ul>';
   for(var i=0; i<steps.length; i++) {
-    str += ('<li>' + steps[i]['instructions'] + '</li>');
+    str += '<li>' + steps[i]['instructions'].replace(regex, '');
+    str += ' for ' + showDistance(steps[i]['distance']['value']) + '</li>';
   }
   str += '</ul>';
 
