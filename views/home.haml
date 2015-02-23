@@ -3,7 +3,7 @@
 %html
 	%head
 	%title seattle a2b
-	%meta{name: 'viewport', content: 'width=device-width, initial-scale=1'}
+	%meta{name: 'viewport', content: 'width=device-width, initial-scale=1, user-scalable=no'}
 
 	%link{type: 'text/css', rel: 'stylesheet', href: 'bootstrap.min.css'}
 	%link{type: 'text/css', rel: 'stylesheet', href: 'app.css'}
@@ -17,13 +17,13 @@
 		#a2b
 			%div
 				%label{for: 'pointA'} Point A:
-				%input#pointA{type: 'text', name: 'pointA', placeholder: 'point A', value: '352 N 80th St'}
+				%input#pointA{type: 'text', name: 'pointA', placeholder: 'start address'}
 			%div
 				%label{for: 'pointB'} Point B:
-				%input#pointB{type: 'text', name: 'pointB', placeholder: 'point B', value: '1301 5th Ave'}
+				%input#pointB{type: 'text', name: 'pointB', placeholder: 'end address'}
 			%div
-				%button#submit plan trip
-				%button#clear clear trip
+				%button#submit.btn-default plan trip
+				%button#clear.btn-default clear trip
 
 		.row#trips
 			#transit.col-sm-4
