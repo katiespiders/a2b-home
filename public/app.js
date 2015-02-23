@@ -197,7 +197,7 @@ function totalCarTime(walkTime, driveTime, $box) {
     var arrivalTime = new Date(Date.now() + totalTime * 1000);
     var totalMinutes = showDuration(totalTime);
     var cost = driveTime/60 * 35;
-    $box.append('<div class="arrival-time">' + showArrivalTime(totalTime) + ' (' + showMoney(cost) + ')</div>');
+    $box.append('<div class="arrival-time"><small>arrive at</small> ' + showArrivalTime(totalTime) + '</div><div class="trip-cost"><small>pay</small> ' + showMoney(cost) + '</div>');
   }
 }
 
@@ -226,7 +226,7 @@ function getWalk(geoA, geoB) {
 
       $('footer').append(verbiage);
       $summaryBox.append(showDuration(duration) + ' (' + showDistance(distance) + ')');
-      $headerBox.append('<div class="arrival-time">' + showArrivalTime(duration) + ' (free)</span>');
+      $headerBox.append('<div class="arrival-time"><small>arrive at</small> ' + showArrivalTime(duration) + '<div class="trip-cost"><small>pay </small>nothing!</div>');
       appendDirections(directionsHTML(directions), $routeBox);
       drawRoute(directions['steps'], 'green', map);
     }
@@ -243,6 +243,7 @@ function clearBoxes() {
 
   headers.forEach(function($header) {
     $header.children('.arrival-time').remove();
+    $header.children('.trip-cost').remove();
   });
 
   var boxes = [
@@ -325,12 +326,13 @@ function transitHeader(trip) {
   var fare = trip['fare'] ? showMoney(trip['fare']) : '$?.??';
 
   if(trip['legs'].length === 1) {
-    var headerString = '<div class="arrival-time">' + summary['arrival_time'];
-    $headerBox.append(headerString + '...just walk (free)</div>');
+    var headerString = '<div class="arrival-time">arrive at ' + summary['arrival_time'] + '</div>';
+    $headerBox.append(headerString + '<div class="trip-cost">...just walk (free)</div>');
     $('#walk').toggle(false);
   }
   else {
-    $headerBox.append('<div class="arrival-time">' + summary['arrival_time'] + ' (' + fare + ' or free)</div>');
+    $headerBox.append('<div class="arrival-time"><small>arrive at</small> ' + summary['arrival_time'] + '</div><div class="trip-cost"><small>pay</small> ' + fare + ' <small>or</small> nothing!*</div>');
+    $routeBox.append('<small>*if you have a monthly ORCA pass</small>');
   }
 }
 
