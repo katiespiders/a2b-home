@@ -180,7 +180,7 @@ function getCar(result, geoA, geoB) {
       totalCarTime(walkTime, driveTime, $header);
 
       var $driveBox = $('#car-drive');
-      $driveBox.toggle(true)
+      $driveBox.toggle(true);
       var $driveSummary = $driveBox.children('.summary');
 
       $driveSummary.append('Drive <strong>' + showDuration(duration) + '</strong> from there');
@@ -188,16 +188,16 @@ function getCar(result, geoA, geoB) {
       appendDirections(directionsHTML(directions), $driveBox);
       drawRoute(directions['steps'], 'firebrick', map);
     });
-};
+}
 
 function totalCarTime(walkTime, driveTime, $box) {
   if(!walkTime || !driveTime) { return false; }
   else {
-    var totalTime = walkTime + driveTime
-    var arrivalTime = new Date(Date.now() + totalTime * 1000)
+    var totalTime = walkTime + driveTime;
+    var arrivalTime = new Date(Date.now() + totalTime * 1000);
     var totalMinutes = showDuration(totalTime);
     var cost = driveTime/60 * 35;
-    $box.append('<span>: ' + showArrivalTime(totalTime) + ' (' + showMoney(cost) + ')</span>');
+    $box.append('<div class="arrival-time">' + showArrivalTime(totalTime) + ' (' + showMoney(cost) + ')</div>');
   }
 }
 
@@ -226,12 +226,12 @@ function getWalk(geoA, geoB) {
 
       $('footer').append(verbiage);
       $summaryBox.append(showDuration(duration) + ' (' + showDistance(distance) + ')');
-      $headerBox.append('<span>' + showArrivalTime(duration) + ' (free)</span>');
+      $headerBox.append('<div class="arrival-time">' + showArrivalTime(duration) + ' (free)</span>');
       appendDirections(directionsHTML(directions), $routeBox);
       drawRoute(directions['steps'], 'green', map);
     }
   );
-};
+}
 
 // DIRECTIONS RENDERING
 function clearBoxes() {
@@ -239,18 +239,18 @@ function clearBoxes() {
     $('#transit').children('h3'),
     $('#car').children('h3'),
     $('#walk').children('h3')
-  ]
+  ];
 
   headers.forEach(function($header) {
-    $header.children('span').remove();
-  })
+    $header.children('.arrival-time').remove();
+  });
 
   var boxes = [
     $('#transit-info'),
     $('#car-walk'),
     $('#car-drive'),
     $('#walk-info')
-  ]
+  ];
 
   boxes.forEach(function($box) {
     $box.toggle(false);
@@ -326,11 +326,11 @@ function transitHeader(trip) {
   var headerString = '<span>: ' + summary['arrival_time'];
 
   if(trip['legs'].length === 1) {
-    $headerBox.append(headerString + '...just walk (free)');
+    $headerBox.append(headerString + '<div class="arrival-time">...just walk (free)</div>');
     $('#walk').toggle(false);
   }
   else {
-    $headerBox.append('<span>: ' + summary['arrival_time'] + ' (' + fare + ' or free)');
+    $headerBox.append('<div class="arrival-time">' + summary['arrival_time'] + ' (' + fare + ' or free)</div>');
   }
 }
 
