@@ -323,10 +323,10 @@ function transitHeader(trip) {
   var $headerBox = $routeBox.siblings('h3');
   var summary = trip['summary'];
   var fare = trip['fare'] ? showMoney(trip['fare']) : '$?.??';
-  var headerString = '<span>: ' + summary['arrival_time'];
 
   if(trip['legs'].length === 1) {
-    $headerBox.append(headerString + '<div class="arrival-time">...just walk (free)</div>');
+    var headerString = '<div class="arrival-time">' + summary['arrival_time'];
+    $headerBox.append(headerString + '...just walk (free)</div>');
     $('#walk').toggle(false);
   }
   else {
