@@ -222,7 +222,7 @@ function getWalk(geoA, geoB) {
       var directions = firstRoute['legs'][0];
       var distance = directions['distance']['value'];
       var duration = directions['duration']['value'];
-      var verbiage = firstRoute['copyrights'] + ' . ' + firstRoute['warnings'][0];
+      var verbiage = firstRoute['copyrights'] + '. ' + firstRoute['warnings'][0];
 
       $('footer').append(verbiage);
       $summaryBox.append(showDuration(duration) + ' (' + showDistance(distance) + ')');
