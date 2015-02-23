@@ -87,6 +87,11 @@ function getRoute(url, mode, geoA, geoB) {
 }
 
 function getCar(result, geoA, geoB) {
+  var $infoBox = $('#car-info');
+  var $header = $infoBox.siblings('h3');
+  $infoBox.toggle(true);
+
+  if(!result[0]){ $infoBox.append('No cars nearby :('); return false; }
   var nearest = result[0];
   var coords = nearest['coordinates'];
   var address = nearest['address'];
@@ -96,10 +101,6 @@ function getCar(result, geoA, geoB) {
     map: map,
     icon: 'http://maps.gstatic.com/mapfiles/kml/pal4/icon54.png'
   }));
-
-  var $infoBox = $('#car-info');
-  var $header = $infoBox.siblings('h3');
-  $infoBox.toggle(true);
 
   var planner = new google.maps.DirectionsService();
   var walkTime, driveTime;
@@ -202,7 +203,8 @@ function showArrivalTime(duration) {
   var minute = arrival.getMinutes();
 
   if(hour === 0) { hour = 12; var ampm = 'am'; }
-  else if(hour <= 12) { var ampm = 'am'; }
+  else if(hour < 12) { var ampm = 'am'; }
+  else if(hour === 12) { var ampm = 'pm' }
   else { hour -= 12; var ampm = 'pm' }
 
   if(minute < 10) { minute = '0' + minute; }
@@ -282,6 +284,7 @@ function getTransit(result) {
 function transitSummary(legs) {
   var $routeBox = $('#transit-info');
   var firstTransitIndex;
+  console.log(legs);
 
   legs.forEach(function(leg, i, legs) {
     if(leg['mode'] == 'WALK') {
@@ -304,14 +307,23 @@ function transitHeader(trip) {
   var $routeBox = $('#transit-info');
   var $headerBox = $routeBox.siblings('h3');
   var summary = trip['summary'];
-  var fare = trip['fare'] ? showMoney(trip['fare']) : '?.??';
+  var fare = trip['fare'] ? showMoney(trip['fare']) : '$?.??';
+  var headerString = '<span>: ' + summary['arrival_time'];
 
-  $headerBox.append('<span>: ' + summary['arrival_time'] + ' (' + fare + ' or free)');
+  if(trip['legs'].length === 1) {
+    $headerBox.append(headerString + '...just walk (free)');
+    $('#walk').toggle(false);
+  }
+  else {
+    $headerBox.append('<span>: ' + summary['arrival_time'] + ' (' + fare + ' or free)');
+  }
 }
 
 function directionsHTML(route) {
   var steps = route['steps'];
+  if(!steps) { return false; }
   var regex = /<div.*<\/div>/;
+  console.log(steps);
 
   var str = '<ul>';
   for(var i=0; i<steps.length; i++) {
@@ -354,7 +366,7 @@ function appendDirections(directions, $parentBox) {
   var $summaryBox = $parentBox.children('.summary');
   var $directionsBox = $parentBox.children('.directions');
 
-  $summaryBox.append('<div class="inline-btn"><button class="display-btn">show directions</button></div>');
+  $summaryBox.append('<div class="inline-btn"><button class="display-btn btn-link">show directions</button></div>');
   $summaryBox.find('.display-btn').on('click', function() {
     return toggleDirections($directionsBox, $(this));
   });
