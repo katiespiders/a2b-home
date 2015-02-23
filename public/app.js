@@ -179,6 +179,7 @@ function showMoney(cents) {
 function showDistance(meters, metric) {
   var distance, unit;
 
+  if(!meters) { return '?'; }
   if(meters < 161){
     if(metric) { distance = meters; unit = 'meter'}
     else { distance = Math.round(meters / 1.60934); unit = 'foot' }
@@ -329,7 +330,6 @@ function directionsHTML(route) {
   var steps = route['steps'];
   if(!steps) { return false; }
   var regex = /<div.*<\/div>/;
-  console.log(steps);
 
   var str = '<ul>';
   for(var i=0; i<steps.length; i++) {
@@ -372,12 +372,14 @@ function appendDirections(directions, $parentBox) {
   var $summaryBox = $parentBox.children('.summary');
   var $directionsBox = $parentBox.children('.directions');
 
-  $summaryBox.append('<div class="inline-btn"><button class="display-btn btn-link">show directions</button></div>');
-  $summaryBox.find('.display-btn').on('click', function() {
-    return toggleDirections($directionsBox, $(this));
-  });
-
-  $directionsBox.append('<div>' + directions + '</div>');
+  if(directions) {
+    $summaryBox.append('<div class="inline-btn"><button class="display-btn btn-link">show directions</button></div>');
+    $summaryBox.find('.display-btn').on('click', function() {
+      return toggleDirections($directionsBox, $(this));
+    });
+    $directionsBox.append('<div>' + directions + '</div>');
+  }
+  else { $summaryBox.append(' (no directions :( )'); }
 }
 
 function toggleDirections($directionsBox, $button) {
