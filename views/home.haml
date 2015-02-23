@@ -14,28 +14,25 @@
 
 	%body
 	.container
-		%form#a2b
-			%span
+		#a2b
+			%div
 				%label{for: 'pointA'} Point A:
 				%input#pointA{type: 'text', name: 'pointA', placeholder: 'point A', value: '352 N 80th St'}
-			%span
+			%div
 				%label{for: 'pointB'} Point B:
 				%input#pointB{type: 'text', name: 'pointB', placeholder: 'point B', value: '1301 5th Ave'}
-			%span
+			%div
 				%button#submit plan trip
-			%span
 				%button#clear clear trip
 
-		.row.trips
+		.row#trips
 			#transit.col-sm-4
-				%h3 transit
+				%h3 fastest transit route
 				.loader
 					%img{src: 'black-ajax-loader.gif'}
 				#transit-info
-					.summary
-					.directions
 			#car.col-sm-4
-				%h3 car
+				%h3 nearest car2go
 				.loader
 					%img{src: 'black-ajax-loader.gif'}
 				#car-info
@@ -46,12 +43,13 @@
 						.summary
 						.directions
 			#walk.col-sm-4
-				%h3 walk
+				%h3 or you <em>could</em> walk...
+				.loader
+					%img{src: 'black-ajax-loader.gif'}
 				#walk-info
 					.summary
 					.directions
 
 		.row
 			#map-canvas.col-sm-12
-		.row
-			#verbiage.col-sm-12
+		%footer

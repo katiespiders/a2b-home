@@ -2,12 +2,17 @@ body {
   margin: 5px;
 }
 
-#a2b {
-  margin: 5px;
+ul {
+  list-style-type: none;
 }
 
-#clear {
-  float: right;
+#a2b {
+  margin: 5px;
+  text-align: center;
+}
+
+#a2b div {
+  display: inline-block;
 }
 
 .loader {
@@ -20,21 +25,30 @@ body {
   margin-right: auto;
 }
 
+.inline-btn {
+  display: inline-block;
+}
+
 #map-canvas {
   height: 60vh;
   width: 90vw;
 }
 
-.trips {
+#trips {
   width: 90vw;
-  border-style: solid;
   overflow: auto;
 }
 
+#trips h3 {
+  text-align: center;
+}
+
 #car-info, #walk-info, #transit-info {
+  padding: 5px;
   display: none;
   border-style: solid;
   overflow: auto;
+  text-align: center;
 }
 
 #verbiage {
@@ -47,6 +61,6 @@ body {
   display: none;
 }
 
-.blue {
-  background-color: blue;
+footer {
+  margin: 20px;
 }
