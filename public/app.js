@@ -118,6 +118,7 @@ function getCar(result, geoA, geoB) {
       $verbiageBox.html(verbiage);
 
       var $walkBox = $('#car-walk');
+      $walkBox.toggle(true);
       var $walkSummary = $walkBox.children('.summary');
 
       $walkSummary.append('The nearest car is around ' + address + ', a ' + distance + ' (about ' +  duration + ') walk away.');
@@ -137,6 +138,7 @@ function getCar(result, geoA, geoB) {
       var distance = directions['distance']['text'];
 
       var $driveBox = $('#car-drive');
+      $driveBox.toggle(true)
       var $driveSummary = $driveBox.children('.summary');
 
       $driveSummary.append('After you pick up the car, it\'s about a ' + duration + ' minute drive:');
@@ -256,8 +258,11 @@ function clearBoxes() {
   ]
 
   boxes.forEach(function($box) {
+    $box.toggle(false);
     $box.children().each(function() { $(this).empty(); });
    });
+
+  $('#car-info').toggle(false);
 }
 
 function appendDirections(directions, buttonStates, $parentBox) {

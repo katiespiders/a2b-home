@@ -12,7 +12,6 @@ body {
 
 .loader {
   display: none;
-  background-color: blue;
 }
 
 .loader img {
