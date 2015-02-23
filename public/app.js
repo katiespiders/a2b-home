@@ -284,6 +284,7 @@ function getTransit(result) {
 function transitSummary(legs) {
   var $routeBox = $('#transit-info');
   var firstTransitIndex;
+  console.log(legs);
 
   legs.forEach(function(leg, i, legs) {
     if(leg['mode'] == 'WALK') {
@@ -322,6 +323,7 @@ function directionsHTML(route) {
   var steps = route['steps'];
   if(!steps) { return false; }
   var regex = /<div.*<\/div>/;
+  console.log(steps);
 
   var str = '<ul>';
   for(var i=0; i<steps.length; i++) {
