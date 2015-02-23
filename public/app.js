@@ -17,6 +17,7 @@ $(document).ready(function() {
 
     event.preventDefault();
     clearBoxes();
+    $('#walk').toggle(true); // sometimes this box is toggled off and needs to be turned back on
     clearOverlays();
     $('.loader').toggle(true);
 
@@ -91,7 +92,13 @@ function getCar(result, geoA, geoB) {
   var $header = $infoBox.siblings('h3');
   $infoBox.toggle(true);
 
-  if(!result[0]){ $infoBox.append('No cars nearby :('); return false; }
+  if(!result[0]){
+    $summaryBox = $infoBox.children('#car-walk').children('.summary');
+    $summaryBox.append('No cars nearby :(');
+    $summaryBox.parent().toggle(true);
+    $summaryBox.toggle(true);
+    return false;
+  }
   var nearest = result[0];
   var coords = nearest['coordinates'];
   var address = nearest['address'];
@@ -284,7 +291,6 @@ function getTransit(result) {
 function transitSummary(legs) {
   var $routeBox = $('#transit-info');
   var firstTransitIndex;
-  console.log(legs);
 
   legs.forEach(function(leg, i, legs) {
     if(leg['mode'] == 'WALK') {
