@@ -33,6 +33,11 @@ footer {
   display: none;
 }
 
+.row {
+  margin-right: -15px;
+  margin-left: -75px;
+}
+
 #a2b {
   margin: 5px;
   text-align: center;
